@@ -1,3 +1,11 @@
+export const existy = (x:any) => x!=null;
+export const cat = ([...args]) {
+  var head = args[0];
+    if (existy(head))
+      return head.concat.apply(head, _.rest(args));
+    else
+      return [];
+}
 (function() {
 
   var _ = require('underscore');

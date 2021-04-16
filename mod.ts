@@ -1,0 +1,1 @@
+export { Client } from './lib/infinispan.ts';

@@ -3,6 +3,79 @@
  * @module
  */
 
+export type Client = {
+  config: ClientOptions
+};
+
+type ClientOptions = {
+  version: number
+  cacheName: string
+  maxRetries: number
+  ssl: SSLOptions
+  topologyUpdates: boolean
+  mediaType: string
+  clusters: Cluster[]
+}
+
+type Cluster = {
+  name: string
+  servers: string[]
+}
+
+type SSLOptions = {
+  enabled: boolean
+  secureProtocol: string
+  trustCerts: string[]
+  clientAuth: ClientAuthOptions
+  sniHostName: string
+  cryptoStore: CryptoStoreOptions
+}
+
+type ClientAuthOptions = {
+  key: string
+  passphrase: string
+  cert: string
+}
+
+type CryptoStoreOptions = {
+  path: string
+  passphrase: string
+}
+
+/**
+   * Cluster information.
+   *
+   * @typedef {Object} Cluster
+   * @property {String} name - Cluster name.
+   * @property {ServerAddress[]} servers - Cluster servers details.
+   * @since 0.3
+   */
+  /**
+   * Client configuration settings. Object instances that override
+   * these configuration options can be used on client construction to tweak
+   * its behaviour.
+   *
+   * @static
+   * @typedef {Object} ClientOptions
+   * @property {?(2.9|2.5|2.2)} [version=2.9] - Version of client/server protocol.
+   * @property {?String} cacheName - Optional cache name.
+   * @property {?Number} [maxRetries=3] - Optional number of retries for operation.
+   * @property {?boolean} [ssl.enabled=false] - Optional flag to enable SSL support.
+   * @property {?String} [ssl.secureProtocol=TLSv1_2_method] - Optional field with secure protocol in use.
+   * @property {?String[]} ssl.trustCerts - Optional paths of trusted SSL certificates.
+   * @property {?String} ssl.clientAuth.key - Optional path to client authentication key.
+   * @property {?String} ssl.clientAuth.passphrase - Optional password for client key.
+   * @property {?String} ssl.clientAuth.cert - Optional client certificate.
+   * @property {?String} ssl.sniHostName - Optional SNI host name.
+   * @property {?String} ssl.cryptoStore.path - Optional crypto store path.
+   * @property {?String} ssl.cryptoStore.passphrase - Optional password for crypto store.
+   * @property {?boolean} [topologyUpdates=true] - Optional flag to controls whether the client deals with topology updates or not.
+   * @property {?(text/plain|application/json)} [mediaType=text/plain] - Media type of the cache contents.
+   * @property {?Cluster[]} clusters - Optional additional clusters for cross-site failovers.
+   * @since 0.3
+   */
+
+
 'use strict';
 
 (function() {

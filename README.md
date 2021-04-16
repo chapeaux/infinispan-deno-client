@@ -1,6 +1,6 @@
-# Infinispan JS Client
+# Infinispan Deno Client
 
-`infinispan` is an asynchronous event-driven Infinispan client for Node.js.
+`infinispan` is an asynchronous event-driven Infinispan client for Deno.
 The results of the asynchronous operations are represented using
 [Promise](https://www.promisejs.org) instances. Amongst many advantages,
 promises make it easy to transform/chain multiple asynchronous invocations
