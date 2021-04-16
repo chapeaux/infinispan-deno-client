@@ -44,7 +44,7 @@ export const validator = (message, fun) => {
   f['message'] = message;
   return f;
 };
-export const truthy = x => x !== false && x!=null;
+export const truthy = x => { return (x !== false && x!=null); };
 export const doWhen = (cond, action) => truthy(cond) ? action() : undefined;
 export const invoker = (NAME, METHOD) => {
   return (target, ...args) => {
@@ -53,57 +53,19 @@ export const invoker = (NAME, METHOD) => {
     return doWhen((existy(targetMethod) && METHOD === targetMethod), () => targetMethod.apply(target, ...args))
   }
 }
-(function() {
+export const merge = (...args) => Object.assign(...args);
+export const dispatch = (...funs) => {
+  return (target, ...args) {
+    let ret;
+    for (let funIndex =0; funIndex < funs.length; funIndex++) {
+      let fun = funs[funIndex];
+      ret = fun.apply(fun, [target, ...args])
 
-  // TODO: Optimizations opportunity: actually, just use pipelining for this!
-  // If needed, provide actions that do not produce intermediate results to
-  // reduce cost of method. This would work potentially in the buffer + offset
-  // case, by directly updating the offset instead of returning the new offset.
-
-  exports.invoker = function invoker (NAME, METHOD) {
-    return function(target /* args ... */) {
-      if (!existy(target)) throw new Error('Must provide a target');
-
-      var targetMethod = target[NAME];
-      var args = _.rest(arguments);
-
-      return doWhen((existy(targetMethod) && METHOD === targetMethod), function() {
-        return targetMethod.apply(target, args);
-      });
-    };
-  };
-
-  // Merge converts _.extend into a pure function. Instead of using the first
-  // argument as the target object, it instead sticks a local empty object
-  // into the front of _.extend’s arguments and mutate that instead.
-  exports.merge = function(/*args*/) {
-    return _.extend.apply(null, construct({}, arguments));
-  };
-
-  exports.dispatch = function(/* funs */) {
-    var funs = _.toArray(arguments);
-    var size = funs.length;
-
-    return function(target /*, args */) {
-      var ret;
-      var args = _.rest(arguments);
-
-      for (var funIndex = 0; funIndex < size; funIndex++) {
-        var fun = funs[funIndex];
-        ret = fun.apply(fun, construct(target, args));
-
-        if (existy(ret)) return ret;
-      }
-
-      return ret;
-    };
-  };
-
-  exports.isa = function(type, action) {
-    return function(obj) {
-      if (type === obj)
-        return action(obj);
+      if (ret != null) return ret;
     }
+    return ret;
   }
-
-}.call(this));
+};
+export const isa = (type, action) => {
+  return (obj) => type === obj ? action(obj) : undefined;
+}

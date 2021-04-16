@@ -1,3 +1,4 @@
+import {lift,existy,validator,greaterThan,lessThan,_partial,condition1} from "./functional.ts";
 (function() {
 
   var MSB = 0x80
@@ -5,31 +6,30 @@
       , MSBALL = ~REST
       , INT = Math.pow(2, 31);
 
-  var _ = require('underscore');
   var f = require('./functional');
   var utils = require('./utils');
 
   var logger = utils.logger('codec');
 
-  exports.encodeUByte = f.lift(doEncodeUByte, _.identity);
-  exports.encodeVInt = f.lift(doEncodeVInt, _.identity);
-  exports.encodeVLong = f.lift(doEncodeVLong, _.identity);
-  exports.encodeJSON = f.lift(doEncodeJSON, _.identity);
-  exports.encodeBytes = f.lift(doEncodeBytes, _.identity);
-  exports.encodeString = f.lift(doEncodeString, _.identity);
+  exports.encodeUByte = lift(doEncodeUByte, _.identity);
+  exports.encodeVInt = lift(doEncodeVInt, _.identity);
+  exports.encodeVLong = lift(doEncodeVLong, _.identity);
+  exports.encodeJSON = lift(doEncodeJSON, _.identity);
+  exports.encodeBytes = lift(doEncodeBytes, _.identity);
+  exports.encodeString = lift(doEncodeString, _.identity);
 
-  exports.encodeSignedInt = f.lift(doEncodeSignedInt, _.identity);
+  exports.encodeSignedInt = lift(doEncodeSignedInt, _.identity);
 
-  exports.decodeUByte = f.lift(doDecodeUByte, _.identity);
-  exports.decodeVInt = f.lift(doDecodeVInt, _.identity);
-  exports.decodeLong = f.lift(doDecodeLong, _.identity);
-  exports.decodeVLong = f.lift(doDecodeVLong, _.identity);
-  exports.decodeJSON = f.lift(doDecodeJSON, _.identity);
-  exports.decodeFixedBytes = f.lift(doDecodeFixedBytes, _.identity);
-  exports.decodeString = f.lift(doDecodeString, _.identity);
-  exports.decodeSignedInt = f.lift(doDecodeSignedInt, _.identity);
-  exports.decodeVariableBytes = f.lift(doDecodeVariableBytes, _.identity);
-  exports.decodeShort = f.lift(doDecodeShort, _.identity);
+  exports.decodeUByte = lift(doDecodeUByte, _.identity);
+  exports.decodeVInt = lift(doDecodeVInt, _.identity);
+  exports.decodeLong = lift(doDecodeLong, _.identity);
+  exports.decodeVLong = lift(doDecodeVLong, _.identity);
+  exports.decodeJSON = lift(doDecodeJSON, _.identity);
+  exports.decodeFixedBytes = lift(doDecodeFixedBytes, _.identity);
+  exports.decodeString = lift(doDecodeString, _.identity);
+  exports.decodeSignedInt = lift(doDecodeSignedInt, _.identity);
+  exports.decodeVariableBytes = lift(doDecodeVariableBytes, _.identity);
+  exports.decodeShort = lift(doDecodeShort, _.identity);
 
   exports.lastDecoded = function(values) {
     return values[0];
@@ -88,9 +88,9 @@
     return (num << 1) ^ (num >> 31);
   }
 
-  var nullCheck = f.validator('must not be null', f.existy);
-  var number = f.validator('must be a number', _.isNumber);
-  var positiveOrZero = f.validator('must be >= 0', f.greaterThan(-1));
+  var nullCheck = validator('must not be null', existy);
+  var number = validator('must be a number', a=>typeof a === 'number');
+  var positiveOrZero = validator('must be >= 0', greaterThan(-1));
   var intTooBig = f.validator('must be less than 2^31', f.lessThan(Math.pow(2, 31)));
   var shortTooBig = f.validator('must be less than 2^15', f.lessThan(Math.pow(2, 15)));
   var longTooBig = f.validator('must be less than 2^53 (javascript safe integer limitation)',
