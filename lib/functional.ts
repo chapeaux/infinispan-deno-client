@@ -1,152 +1,64 @@
 export const existy = (x:any) => x!=null;
-export const cat = ([...args]) {
-  var head = args[0];
-    if (existy(head))
-      return head.concat.apply(head, _.rest(args));
-    else
-      return [];
+export const cat = (...args) => [...args];
+export const construct = (head, ...tail) => [head,...tail];
+export const _partial = (fun, ...args) => fun(...args);
+export const pipeline = (seed, ...args) => [...args].reduce((a,c) => a(c),seed);
+export const curry = (fun, ...args) => fun(...args);
+export const greaterThan = curry((lhs,rhs) => lhs>rhs);
+export const lessThan = curry((lhs,rhs) => lhs<rhs);
+export const lift = (answerFx, stateFx, ...args) => {
+  return (state) => {
+    return {
+      answer: answerFx(state, ...args),
+      state: stateFx ? stateFx(state) : answerFx(state, ...args)
+    };
+  }
+};
+export const actions = (acts, done) => {
+  return (seed) => {
+    let intermediate = acts.reduce((a,c)=> {
+      return {
+        values: [...a.values,...c(a.state).answer],
+        state: c(a.state).state
+      };
+    },{ values: [], state: seed});
+    
+    return done(intermediate.values.filter(v=>v!=null), intermediate.state);
+  };
+};
+export const mapcat = (fun, coll) => coll.map(fun);
+export const condition1 = (...args) => {
+  return (fun, arg) => {
+    let errors = mapcat((isValid)=> {
+      return isValid(arg) ? [] : [typeof isValid.message ==='function' ? isValid.message.apply(arg) : isValid.message];
+    }, [...args]);
+
+    if (!errors) {
+      throw new Error(errors.join(', '));
+    }
+    return fun(arg);
+  }
+}
+export const validator = (message, fun) => {
+  let f = (...args) => fun(...args);
+  f['message'] = message;
+  return f;
+};
+export const truthy = x => x !== false && x!=null;
+export const doWhen = (cond, action) => truthy(cond) ? action() : undefined;
+export const invoker = (NAME, METHOD) => {
+  return (target, ...args) => {
+    if (!existy(target)) throw new Error('Must provide a target');
+    let targetMethod = target[NAME];
+    return doWhen((existy(targetMethod) && METHOD === targetMethod), () => targetMethod.apply(target, ...args))
+  }
 }
 (function() {
-
-  var _ = require('underscore');
-
-  function existy(x) { return x != null }
-  exports.existy = existy;
-
-  function cat() {
-    var head = _.first(arguments);
-    if (existy(head))
-      return head.concat.apply(head, _.rest(arguments));
-    else
-      return [];
-  }
-  exports.cat = cat;
-
-  function construct(head, tail) {
-    return cat([head], _.toArray(tail));
-  }
-  exports.construct = construct;
-
-  exports.partial1 = function partial1(fun, arg1) {
-    return function(/* args */) {
-      var args = construct(arg1, arguments);
-      return fun.apply(fun, args);
-    };
-  };
-
-  exports.partial2 = function _partial2(fun, arg1, arg2) {
-    return function(/* args */) {
-      var args = exports.cat([arg1, arg2], arguments);
-      return fun.apply(fun, args);
-    };
-  };
-
-  exports.partial3 = function _partial3(fun, arg1, arg2, arg3) {
-    return function(/* args */) {
-      var args = exports.cat([arg1, arg2, arg3], arguments);
-      return fun.apply(fun, args);
-    };
-  };
-
-  exports.pipeline = function pipeline(seed /*, args */) {
-    return _.reduce(_.rest(arguments),
-                    function (l, r) { return r(l); },
-                    seed);
-  };
-
-  exports.curry3 = function curry3(fun) {
-    return function(thirdArg) {
-      return function (secondArg) {
-        return function (firstArg) {
-          return fun(firstArg, secondArg, thirdArg);
-        };
-      };
-    };
-  };
-
-  exports.curry2 = function curry2(fun) {
-    return function(secondArg) {
-      return function(firstArg) {
-        return fun(firstArg, secondArg);
-      };
-    };
-  };
-
-  exports.greaterThan = exports.curry2(function (lhs, rhs) { return lhs > rhs });
-  exports.lessThan = exports.curry2(function (lhs, rhs) { return lhs < rhs });
-
-  exports.lift = function lift(answerFun, stateFun) {
-    return function(/* args */) {
-      var args = _.toArray(arguments);
-
-      return function(state) {
-        var ans = answerFun.apply(null, exports.construct(state, args));
-        var s = stateFun ? stateFun(state) : ans;
-
-        return {answer: ans, state: s};
-      };
-    };
-  };
 
   // TODO: Optimizations opportunity: actually, just use pipelining for this!
   // If needed, provide actions that do not produce intermediate results to
   // reduce cost of method. This would work potentially in the buffer + offset
   // case, by directly updating the offset instead of returning the new offset.
-
-  exports.actions = function actions(acts, done) {
-    return function (seed) {
-      var init = { values: [], state: seed };
-
-      var intermediate = _.reduce(acts, function (stateObj, action) {
-        var result = action(stateObj.state);
-        var values = exports.cat(stateObj.values, [result.answer]);
-        return {values: values, state: result.state};
-      }, init);
-
-      var keep = _.filter(intermediate.values, existy);
-
-      return done(keep, intermediate.state);
-    };
-  };
-
-  function mapcat(fun, coll) {
-    return cat.apply(null, _.map(coll, fun));
-  }
-
-  exports.condition1 = function condition1(/* validators */) {
-    var validators = _.toArray(arguments);
-
-    return function(fun, arg) {
-      var errors = mapcat(function(isValid) {
-        return isValid(arg) ? []
-          : [_.isFunction(isValid.message) ? isValid.message.apply(arg) : isValid.message];
-      }, validators);
-
-      if (!_.isEmpty(errors))
-        throw new Error(errors.join(', '));
-
-      return fun(arg);
-    };
-  };
-
-  exports.validator = function validator(message, fun) {
-    var f = function(/* args */) {
-      return fun.apply(fun, arguments);
-    };
-
-    f['message'] = message;
-    return f;
-  };
-
-  exports.truthy = truthy;
-  function truthy(x) { return (x !== false) && existy(x) }
-
-  function doWhen(cond, action) {
-    if(truthy(cond))
-      return action();
-    else
-      return undefined;
-  }
 
   exports.invoker = function invoker (NAME, METHOD) {
     return function(target /* args ... */) {
